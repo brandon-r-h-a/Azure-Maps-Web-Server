@@ -24,8 +24,8 @@ app.get('/azure-embed', async (req, res) => {
     }
 
     try {
-        // STEP 1: Geocode the address using Azure Maps REST API
-        const geocodeUrl = `https://atlas.microsoft.com/geocode?api-version=2023-06-01&query=${encodeURIComponent(addressQuery)}&subscription-key=${AZURE_MAPS_KEY}`;
+        // STEP 1: Geocode the address using the requested 2026-01-01 API version
+        const geocodeUrl = `https://atlas.microsoft.com/geocode?api-version=2026-01-01&query=${encodeURIComponent(addressQuery)}&subscription-key=${AZURE_MAPS_KEY}`;
         
         const geoResponse = await axios.get(geocodeUrl);
         
@@ -37,14 +37,14 @@ app.get('/azure-embed', async (req, res) => {
         const lon = geoResponse.data.features[0].geometry.coordinates[0];
         const lat = geoResponse.data.features[0].geometry.coordinates[1];
 
-        // STEP 2: Call Azure Static Image API using the coordinates
+        // STEP 2: Call Azure Static Image API using the requested 2024-04-01 API version
         // We add a default blue pin (co0078d4) at the lon/lat coordinates
-        const staticImageUrl = `https://atlas.microsoft.com/map/static/png?api-version=2022-08-01&subscription-key=${AZURE_MAPS_KEY}&zoom=15&center=${lon},${lat}&pins=default|co0078d4||${lon} ${lat}`;
+        const staticImageUrl = `https://atlas.microsoft.com/map/static?api-version=2024-04-01&subscription-key=${AZURE_MAPS_KEY}&zoom=15&center=${lon},${lat}&pins=default|co0078d4||${lon} ${lat}`;
 
-        // Fetch the image as a binary buffer
+        // Fetch the image as a binary arraybuffer so we can pass it straight through
         const imageResponse = await axios.get(staticImageUrl, { responseType: 'arraybuffer' });
 
-        // STEP 3: Return the raw PNG image directly to your system
+        // STEP 3: Return the raw image directly to your system
         res.setHeader('Content-Type', 'image/png');
         res.status(200).send(imageResponse.data);
 
@@ -53,7 +53,8 @@ app.get('/azure-embed', async (req, res) => {
         
         let errorDetails = error.message;
         if (error.response && error.response.data) {
-            // If the error comes from the arraybuffer, we have to parse it back to a string
+            // Because we requested an arraybuffer for the image, if Azure throws an error 
+            // (like a 401 Unauthorized), the error message will be encoded as a buffer.
             if (error.response.data instanceof Buffer) {
                 errorDetails = error.response.data.toString('utf8');
             } else {
