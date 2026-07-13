@@ -2,11 +2,11 @@ const express = require('express');
 const axios = require('axios');
 const app = express();
 
-// Your Azure Maps Subscription Key
+// Azure Maps Subscription Key
 const AZURE_MAPS_KEY = process.env.AZURE_MAPS_KEY;
 
 app.get('/azure-embed', async (req, res) => {
-    // 1. Extract inputs from the URL query parameters
+    // Extract inputs from the URL query parameters
     const { q, Address1, Address2, City, StateRegionProvince, PostalCode, Country } = req.query;
 
     let addressQuery = q;
